@@ -222,12 +222,53 @@ tidy_books %>%
   ungroup()
 ```
 
-
 ```{r}
+tweets_df <- read.csv("chatgpt.csv")
+
+tweets_df$tweets <- as.character(tweets_df$tweets)
+
+tweets_df1 <- tweets_df
+
+tweets_list <- as.list(tweets_df1$tweets)
+
+tweets_df1$tweets <- unlist(tweets_list)
+
+label_counts <- tweets_df1 %>%
+count(labels)
+
+print(label_counts)
 ```
 
-
 ```{r}
+tweet_words <- tweets_list %>%
+unlist() %>%
+tolower() %>%
+str_split("\\s+") %>%
+unlist()
 
+tweet_words_df <- data.frame(word = tweet_words)
+
+word_counts <- tweet_words_df %>%
+count(word, sort = TRUE)
+
+top_50_words <- head(word_counts, 50)
+
+print(top_50_words)
 ```
 
+```{r}
+get_sentiments("loughran")
+loughran_lexicon <- get_sentiments("loughran")
+
+sentiment_analysis <- tweet_words_df %>% inner_join(get_sentiments("loughran"), by = c("word")) %>%
+count(sentiment, sort = TRUE)
+
+print(sentiment_analysis)
+```
+
+```{r}
+ggplot(sentiment_analysis, aes(x = sentiment, y = n)) +
+geom_bar(stat = "identity", fill = "skyblue", color = "black") +
+labs(title = "Sentiment Analysis of Tweets", x = "Sentiment", 
+y = "Frequency") + theme_minimal()
+```
