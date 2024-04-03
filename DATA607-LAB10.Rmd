@@ -5,27 +5,26 @@ output: html_document
 date: "2024-03-28"
 ---
 
-## In Text Mining with R, Chapter 2 looks at Sentiment Analysis.  In this assignment, you should start by getting the primary example code from chapter 2 working in an R Markdown document.  You should provide a citation to this base code.  You’re then asked to extend the code in two ways: Work with a different corpus of your choosing, and Incorporate at least one additional sentiment lexicon (possibly from another R package that you’ve found through research). As usual, please submit links to both an .Rmd file posted in your GitHub repository and to your code on rpubs.com. You make work on a small team on this assignment.##
+## In Text Mining with R, Chapter 2 looks at Sentiment Analysis. In this assignment, you should start by getting the primary example code from chapter 2 working in an R Markdown document. You should provide a citation to this base code. You’re then asked to extend the code in two ways: Work with a different corpus of your choosing, and Incorporate at least one additional sentiment lexicon (possibly from another R package that you’ve found through research). As usual, please submit links to both an .Rmd file posted in your GitHub repository and to your code on rpubs.com. You make work on a small team on this assignment.
 
 ```{r}
 library(tidyverse)
 library(dplyr)
 library(tidyr)
+library(tidytext)
 ```
 
 ```{r}
-library(tidytext)
-
 get_sentiments("afinn")
 ```
 
 ```{r}
 get_sentiments("bing")
 ```
+
 ```{r}
 get_sentiments("nrc")
 ```
-
 
 ```{r}
 library(janeaustenr)
@@ -42,7 +41,6 @@ tidy_books <- austen_books() %>%
   ungroup() %>%
   unnest_tokens(word, text)
 ```
-
 
 ```{r}
 nrc_joy <- get_sentiments("nrc") %>% 
@@ -78,7 +76,6 @@ pride_prejudice <- tidy_books %>%
 pride_prejudice
 ```
 
-
 ```{r}
 afinn <- pride_prejudice %>% 
   inner_join(get_sentiments("afinn")) %>% 
@@ -103,7 +100,6 @@ bing_and_nrc <- bind_rows(
   mutate(sentiment = positive - negative)
 ```
 
-
 ```{r}
 bind_rows(afinn, 
           bing_and_nrc) %>%
@@ -112,13 +108,11 @@ bind_rows(afinn,
   facet_wrap(~method, ncol = 1, scales = "free_y")
 ```
 
-
 ```{r}
 get_sentiments("nrc") %>% 
   filter(sentiment %in% c("positive", "negative")) %>% 
   count(sentiment)
 ```
-
 
 ```{r}
 get_sentiments("bing") %>% 
@@ -147,15 +141,13 @@ bing_word_counts %>%
        y = NULL)
 ```
 
-
 ```{r}
 custom_stop_words <- bind_rows(tibble(word = c("miss"),  
-                                      lexicon = c("custom")), 
+                                    lexicon = c("custom")), 
                                stop_words)
 
 custom_stop_words
 ```
-
 
 ```{r}
 library(wordcloud)
@@ -165,7 +157,6 @@ tidy_books %>%
   count(word) %>%
   with(wordcloud(word, n, max.words = 100))
 ```
-
 
 ```{r}
 library(reshape2)
@@ -178,17 +169,14 @@ tidy_books %>%
                    max.words = 100)
 ```
 
-
 ```{r}
 p_and_p_sentences <- tibble(text = prideprejudice) %>%
   unnest_tokens(sentence, text, token = "sentences")
 ```
 
-
 ```{r}
 p_and_p_sentences$sentence[2]
 ```
-
 
 ```{r}
 austen_chapters <- austen_books() %>%
@@ -201,7 +189,6 @@ austen_chapters %>%
   group_by(book) %>% 
   summarise(chapters = n())
 ```
-
 
 ```{r}
 bingnegative <- get_sentiments("bing") %>% 
@@ -222,6 +209,8 @@ tidy_books %>%
   ungroup()
 ```
 
+## I used a Corpus which contained tweets about Chatgpt. This is the description of the data. "ChatGPT has been a major talk in the tech world. The tweets about chatgpt were gathered for a month and then the sentiment analysis was made using Natural Language Processing." I will use the "Loughran" lexicon which I found in a link refrenced below to analyze the sentiment of this dataset. I will tidy this data to be able to analyze it.
+
 ```{r}
 tweets_df <- read.csv("chatgpt.csv")
 
@@ -238,6 +227,8 @@ count(labels)
 
 print(label_counts)
 ```
+
+**I wanted to first analyze the data and see which words occur the most often in the tweets of this data frame. In order to do so I had to tidy this data to prepare it for sentiment analysis because the tweets contained characters such as emojis which cannot be assigned a sentiment.**
 
 ```{r}
 tweet_words <- tweets_list %>%
@@ -256,6 +247,8 @@ top_50_words <- head(word_counts, 50)
 print(top_50_words)
 ```
 
+**These words are more general words used to construct sentences but this was expected being that these are Tweets and not content from experts on the subject. I will use the sentiment lexicon "Loughran" to analyze the text in these tweets and see which sentiments occur most often**
+
 ```{r}
 get_sentiments("loughran")
 loughran_lexicon <- get_sentiments("loughran")
@@ -266,9 +259,22 @@ count(sentiment, sort = TRUE)
 print(sentiment_analysis)
 ```
 
+**I will now graph and show which sentiments most commonly occurred when it comes to the words in these tweets regarding Chatgpt. The most commonly occuring sentiments are positive, followed by negative and then uncertainty.**
+
 ```{r}
 ggplot(sentiment_analysis, aes(x = sentiment, y = n)) +
 geom_bar(stat = "identity", fill = "skyblue", color = "black") +
 labs(title = "Sentiment Analysis of Tweets", x = "Sentiment", 
 y = "Frequency") + theme_minimal()
 ```
+
+## Refrences:
+
+**Robinson, J. S. and D. (n.d.). 2 sentiment analysis with Tidy Data: Text mining with R. A Tidy Approach. <https://www.tidytextmining.com/sentiment>**
+
+**SA, C. (2023) CHATGPT sentiment analysis, Kaggle.**
+Available at:<https://www.kaggle.com/datasets/charunisa/chatgpt-sentiment-analysis/data> (Accessed: 28 March 2024).
+
+**Lexicon Link** 
+**Flynn, L. (2023) Comparing sentiment analysis dictionaries in R, Medium.** 
+Available at:(https://medium.com/@laurenflynn1211/comparing-sentiment-analysis-dictionaries-in-r-c695fca64326){.uri} (Accessed: 28 March 2024).
